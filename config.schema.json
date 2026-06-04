@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "title": "rabbitmq-definitions-loader config",
+  "description": "Non-secret config for the definitions-loader (a public ConfigMap). Secrets — the rabbitmq password and the master upstream URI — come from the environment (a K8s Secret), never from this file and never baked into the image.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "managementHost": { "type": "string", "minLength": 1, "default": "127.0.0.1" },
+    "managementPort": { "type": "integer", "minimum": 1, "maximum": 65535, "default": 15672 },
+    "definitionsFile": { "type": "string", "minLength": 1, "default": "/etc/definitions/definitions.json" },
+    "maxAttempts": { "type": "integer", "minimum": 1, "default": 60 },
+    "retrySeconds": { "type": "integer", "minimum": 0, "default": 3 },
+    "readyCommand": { "type": "string", "description": "optional readiness check run before each attempt" },
+    "verbose": { "type": "boolean", "default": false }
+  }
+}
