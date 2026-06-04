@@ -41,5 +41,9 @@
       version = "0.1.0";
       description = "Generic RabbitMQ definitions loader (typed YAML config; secrets from env)";
       distroless = true;
+      # amd64-only for now: the substrate image CI runner (x86_64-linux) can't build
+      # the arm64 image config (Required system: aarch64-linux). Consumer nodes (dbk
+      # GKE) are amd64. Re-add "arm64" once an arm builder/emulation is in the CI.
+      architectures = ["amd64"];
     };
 }
