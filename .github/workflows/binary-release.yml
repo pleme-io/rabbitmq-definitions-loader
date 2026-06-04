@@ -1,0 +1,45 @@
+name: binary-release
+
+# Tag-triggered (v*). Builds the cross-arch CLI binary from the substrate Go
+# service-flake (packages.<system>.default) and attaches each + .sha256 to the
+# GitHub Release. The image channel is image-release.yml.
+#
+# Cross-arch: pure-Go (CGO_ENABLED=0), so aarch64-linux cross-compiles on an
+# x86_64 runner without emulation. This caller is the interim until substrate
+# ships a `go-binary-release.yml` reusable (sibling of rust-binary-release.yml),
+# at which point it collapses to a <=15-line `uses:` shim.
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  binaries:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { system: x86_64-linux, suffix: linux-x86_64 }
+          - { system: aarch64-linux, suffix: linux-aarch64 }
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@main
+      - name: Build binary (${{ matrix.system }})
+        run: |
+          set -euo pipefail
+          nix build ".#packages.${{ matrix.system }}.default"
+          out="rabbitmq-definitions-loader-${{ matrix.suffix }}"
+          cp -L "result/bin/rabbitmq-definitions-loader" "$out"
+          sha256sum "$out" | awk '{print $1}' > "$out.sha256"
+      - name: Attach to GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            rabbitmq-definitions-loader-${{ matrix.suffix }}
+            rabbitmq-definitions-loader-${{ matrix.suffix }}.sha256

@@ -1,0 +1,25 @@
+name: image-release
+
+# Every push to main builds + pushes the multi-arch OCI image to
+# ghcr.io/pleme-io/rabbitmq-definitions-loader via the substrate Go
+# service-flake's `nix run .#release` (forge image-release; idempotent
+# <arch>-<sha> + <arch>-latest tags). The binary GH-release is binary-release.yml.
+#
+# NOTE: after the first push, set the ghcr package PUBLIC (Package settings →
+# Change visibility) so consumers pull anonymously — no image-pull secret.
+on:
+  push:
+    branches: [main]
+    paths:
+      - "cmd/**"
+      - "internal/**"
+      - "flake.nix"
+      - "flake.lock"
+      - "go.mod"
+      - "go.sum"
+  workflow_dispatch: {}
+
+jobs:
+  release:
+    uses: pleme-io/substrate/.github/workflows/nix-image-auto-release.yml@main
+    secrets: inherit

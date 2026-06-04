@@ -34,21 +34,29 @@ in the image:
 `-config <path>` (default `/etc/loader/config.yaml`) selects the YAML.
 `-install <path>` copies the binary to a shared volume (init-container pattern).
 
-## Build / image
+## Build / publish (substrate Go service-flake)
+
+The flake anchors on substrate's `build/go/service-flake.nix` — standard outputs:
 
 ```bash
-nix build .#definitions-loader        # binary (runs go test in-sandbox)
-nix build .#packages.x86_64-linux.image   # the public linux OCI image (docker-archive)
+nix build .#packages.<system>.default                # the CLI binary
+nix build '.#packages.<system>."dockerImage:amd64"'  # linux/amd64 OCI image
+nix run   .#release                                  # multi-arch ghcr push (forge)
+nix flake check                                       # eval + builds
+go test ./...                                         # unit tests
 ```
 
-Push it public with pleme-io's typed [`oci-push`](https://github.com/pleme-io/substrate):
+Publishing is automated (substrate/forge):
+- **Image** — every push to `main` → `ghcr.io/pleme-io/rabbitmq-definitions-loader`
+  (`<arch>-latest` + `<arch>-<sha>`, content-addressed) via `image-release.yml`
+  → substrate `nix-image-auto-release.yml`.
+- **Binary** — a `v*` tag → cross-arch binaries on a GitHub Release via
+  `binary-release.yml`.
 
-```bash
-nix run github:pleme-io/substrate#oci-push -- push \
-  --tarball ./result --registry ghcr.io/pleme-io \
-  --image rabbitmq-definitions-loader --tag 0.1.0 \
-  --dest-user <you> --dest-pass <token>
-```
+Bump: edit `version` in `flake.nix`, commit, tag `v<new>`, push.
+
+> After the first image publish, set the ghcr package **public** (Package
+> settings → visibility) so consumers pull anonymously — no image-pull secret.
 
 Consumers (e.g. akeyless-environments' rabbitmq-cluster chart) pull the public
-image anonymously and supply the YAML config + the K8s Secret.
+image and supply the YAML config + the K8s Secret.
