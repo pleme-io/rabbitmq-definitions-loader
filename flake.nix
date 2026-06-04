@@ -41,9 +41,12 @@
       version = "0.1.0";
       description = "Generic RabbitMQ definitions loader (typed YAML config; secrets from env)";
       distroless = true;
-      # amd64-only for now: the substrate image CI runner (x86_64-linux) can't build
-      # the arm64 image config (Required system: aarch64-linux). Consumer nodes (dbk
-      # GKE) are amd64. Re-add "arm64" once an arm builder/emulation is in the CI.
+      # amd64-only for now. The image CI runner is x86_64-linux and buildGoModule's
+      # go-modules derivation is platform-stamped, so building the arm64 image needs an
+      # aarch64-linux builder the runner lacks. Restrict BOTH systems + architectures so
+      # the release app only does amd64. Consumer nodes (dbk GKE) are amd64. Re-add
+      # aarch64-linux / arm64 once an arm builder (or emulation) is in CI.
+      systems = ["x86_64-linux"];
       architectures = ["amd64"];
     };
 }

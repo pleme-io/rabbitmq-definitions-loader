@@ -23,7 +23,8 @@ jobs:
       matrix:
         include:
           - { system: x86_64-linux, suffix: linux-x86_64 }
-          - { system: aarch64-linux, suffix: linux-aarch64 }
+          # aarch64-linux dropped until an arm builder is in CI (go-modules is
+          # platform-stamped, so cross-build needs a real aarch64 builder).
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
