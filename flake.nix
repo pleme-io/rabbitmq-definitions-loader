@@ -2,10 +2,9 @@
   description = "rabbitmq-definitions-loader — generic, config-driven RabbitMQ definitions loader (public init-container image + cross-arch CLI)";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
+    nixpkgs.follows = "substrate/nixpkgs";
     substrate = {
       url = "github:pleme-io/substrate";
-      inputs.nixpkgs.follows = "nixpkgs";
     };
     forge = {
       url = "github:pleme-io/forge";
